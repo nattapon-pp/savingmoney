@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบออมทรัพย์นักเรียนโรงเรียนบ้านกิ่วพร้าว</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Loading Overlay -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-loading-overlay@2.1.7/dist/loadingoverlay.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-loading-overlay@2.1.7/dist/loadingoverlay.min.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    
+    <!-- SheetJS for Excel Export -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+        }
+        
+        .font-kanit {
+            font-family: 'Kanit', sans-serif;
+        }
+        
+        .loading-overlay {
+            background: rgba(255, 255, 255, 0.95);
+        }
+        
+        .page-section {
+            display: none;
+        }
+        
+        .page-section.active {
+            display: block;
+        }
+        
+        .nav-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .nav-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .nav-btn.active {
+            background: linear-gradient(135deg, #ff9a56 0%, #ff6b6b 100%);
+            color: white;
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #ff9a56 0%, #ff6b6b 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 154, 86, 0.4);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 50;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: #fef3e2;
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-menu {
+                display: none;
+            }
+            
+            .mobile-menu.show {
+                display: block;
+            }
+            
+            .container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            
+            .text-2xl {
+                font-size: 1.5rem;
+            }
+            
+            .text-3xl {
+                font-size: 1.75rem;
+            }
+            
+            .grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4 {
+                grid-template-columns: repeat(1, minmax(0, 1fr));
+            }
+            
+            .w-full.max-w-4xl {
+                max-width: 95%;
+            }
+            
+            .overflow-x-auto {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            table {
+                font-size: 0.875rem;
+            }
+            
+            .px-4 {
+                padding-left: 0.5rem;
+                padding-right: 0.5rem;
+            }
+            
+            .py-3 {
+                padding-top: 0.5rem;
+                padding-bottom: 0.5rem;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .flex.space-x-4 {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .flex.space-x-4 button {
+                width: 100%;
+            }
+            
+            .grid.grid-cols-1.md\:grid-cols-3.gap-4 {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal .bg-white {
+                margin: 1rem;
+                max-height: calc(100vh - 2rem);
+            }
+        }
+        
+        /* Touch-friendly buttons */
+        @media (hover: none) and (pointer: coarse) {
+            .nav-btn, .btn-primary, button {
+                min-height: 44px;
+                min-width: 44px;
+            }
+        }
+        
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Custom scrollbar for webkit browsers */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #ff9a56;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ff6b6b;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-orange-50 to-pink-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-lg sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <img src="https://lh3.googleusercontent.com/d/1vQtWxoqhL4BWuOmDehWMGTqoRh63AThV" alt="ตราสัญลักษณ์" class="w-16 h-16 rounded-full shadow-md">
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-kanit font-bold text-orange-600">ระบบออมทรัพย์นักเรียน</h1>
+                        <p class="text-sm text-gray-600 font-kanit">โรงเรียนบ้านกิ่วพร้าว</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <div id="userInfo" class="hidden">
+                        <span class="text-sm text-gray-600">ยินดีต้อนรับ: <span id="username" class="font-semibold"></span></span>
+                        <button onclick="logout()" class="ml-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
+                            ออกจากระบบ
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md sticky top-20 z-30">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-wrap justify-center md:justify-start space-x-2 py-3">
+                <button onclick="showPage('dashboard')" class="nav-btn px-4 py-2 rounded-lg font-kanit font-medium active">
+                    📊 แดชบอร์ด
+                </button>
+                <button onclick="showPage('deposit')" class="nav-btn px-4 py-2 rounded-lg font-kanit font-medium">
+                    💰 ฝาก-ถอน
+                </button>
+                <button onclick="showPage('students')" class="nav-btn px-4 py-2 rounded-lg font-kanit font-medium">
+                    👥 รายชื่อนักเรียน
+                </button>
+                <button onclick="showPage('users')" class="nav-btn px-4 py-2 rounded-lg font-kanit font-medium hidden" id="usersNavBtn">
+                    👤 จัดการผู้ใช้
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Login Section -->
+        <section id="loginSection" class="page-section active">
+            <div class="max-w-md mx-auto">
+                <div class="bg-white rounded-2xl shadow-xl p-8 card-hover">
+                    <h2 class="text-2xl font-kanit font-bold text-center mb-6 text-orange-600">เข้าสู่ระบบ</h2>
+                    <form id="loginForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">ชื่อผู้ใช้</label>
+                            <input type="text" id="loginUsername" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">รหัสผ่าน</label>
+                            <input type="password" id="loginPassword" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                        </div>
+                        <button type="submit" class="w-full btn-primary text-white font-kanit font-medium py-3 rounded-lg">
+                            เข้าสู่ระบบ
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dashboard Section -->
+        <section id="dashboardSection" class="page-section">
+            <div class="mb-6">
+                <h2 class="text-2xl font-kanit font-bold text-gray-800 mb-4">แดชบอร์ด</h2>
+                
+                <!-- Filter Buttons -->
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <button onclick="filterDashboard('all')" class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition">
+                        ทั้งหมด
+                    </button>
+                    <button onclick="filterDashboard('monthly')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                        รายเดือน
+                    </button>
+                    <input type="month" id="monthFilter" class="px-4 py-2 border border-gray-300 rounded-lg" onchange="filterDashboard('monthly')">
+                </div>
+                
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">ยอดรวมทั้งหมด</p>
+                                <p class="text-2xl font-bold text-orange-600" id="totalAmount">฿0</p>
+                            </div>
+                            <div class="bg-orange-100 p-3 rounded-full">
+                                <svg class="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">อนุบาล</p>
+                                <p class="text-2xl font-bold text-blue-600" id="kindergartenAmount">฿0</p>
+                            </div>
+                            <div class="bg-blue-100 p-3 rounded-full">
+                                <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">ประถมศึกษา</p>
+                                <p class="text-2xl font-bold text-green-600" id="primaryAmount">฿0</p>
+                            </div>
+                            <div class="bg-green-100 p-3 rounded-full">
+                                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">จำนวนนักเรียน</p>
+                                <p class="text-2xl font-bold text-purple-600" id="totalStudents">0</p>
+                            </div>
+                            <div class="bg-purple-100 p-3 rounded-full">
+                                <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Chart -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-kanit font-bold mb-4">กราฟยอดเงินรวมตามชั้นเรียน</h3>
+                    <canvas id="classChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        <!-- Deposit/Withdraw Section -->
+        <section id="depositSection" class="page-section">
+            <div class="mb-6">
+                <h2 class="text-2xl font-kanit font-bold text-gray-800 mb-4">ฝาก-ถอนเงิน</h2>
+                
+                <div id="depositButtons" class="hidden mb-6 space-x-4">
+                    <button onclick="showDepositModal()" class="btn-primary text-white px-6 py-3 rounded-lg font-kanit font-medium">
+                        💰 ฝากเงิน
+                    </button>
+                    <button onclick="showWithdrawModal()" class="btn-primary text-white px-6 py-3 rounded-lg font-kanit font-medium">
+                        💸 ถอนเงิน
+                    </button>
+                    <button onclick="showInitialDepositModal()" class="btn-primary text-white px-6 py-3 rounded-lg font-kanit font-medium">
+                        📈 ยกมา
+                    </button>
+                    <button onclick="exportData()" class="btn-primary text-white px-6 py-3 rounded-lg font-kanit font-medium">
+                        📊 Export ข้อมูล
+                    </button>
+                </div>
+                
+                <div id="loginPrompt" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                    <p class="text-yellow-800">กรุณาเข้าสู่ระบบเพื่อใช้งานฟังก์ชันนี้</p>
+                </div>
+                
+                <!-- Transaction Table -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-kanit font-bold mb-4">รายการฝาก-ถอนล่าสุด</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full table-hover">
+                            <thead class="bg-orange-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">ลำดับ</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">วันที่</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">ชื่อนักเรียน</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">ชั้น</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">ประเภท</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">จำนวนเงิน</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">ดำเนินการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactionTableBody">
+                                <!-- Transactions will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div class="flex justify-between items-center mt-4">
+                        <button onclick="previousPage()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                            หน้าก่อนหน้า
+                        </button>
+                        <span id="pageInfo">หน้า 1 จาก 1</span>
+                        <button onclick="nextPage()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                            หน้าถัดไป
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Students Section -->
+        <section id="studentsSection" class="page-section">
+            <div class="mb-6">
+                <h2 class="text-2xl font-kanit font-bold text-gray-800 mb-4">รายชื่อนักเรียน</h2>
+                
+                <div id="studentButtons" class="hidden mb-6">
+                    <button onclick="showAddStudentModal()" class="btn-primary text-white px-6 py-3 rounded-lg font-kanit font-medium">
+                        ➕ เพิ่มนักเรียน
+                    </button>
+                </div>
+                
+                <div id="studentLoginPrompt" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                    <p class="text-yellow-800">กรุณาเข้าสู่ระบบเพื่อจัดการรายชื่อนักเรียน</p>
+                </div>
+                
+                <!-- Student Table -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="overflow-x-auto">
+                        <table class="w-full table-hover">
+                            <thead class="bg-orange-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">ลำดับ</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">ชื่อ-นามสกุล</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">ชั้น</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">ยอดเงิน</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">ดำเนินการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentTableBody">
+                                <!-- Students will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Student Pagination -->
+                    <div class="flex justify-between items-center mt-4">
+                        <button onclick="previousStudentPage()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                            หน้าก่อนหน้า
+                        </button>
+                        <span id="studentPageInfo">หน้า 1 จาก 1</span>
+                        <button onclick="nextStudentPage()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                            หน้าถัดไป
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Users Management Section -->
+        <section id="usersSection" class="page-section">
+            <div class="mb-6">
+                <h2 class="text-2xl font-kanit font-bold text-gray-800 mb-4">จัดการผู้ใช้</h2>
+                
+                <button onclick="showAddUserModal()" class="btn-primary text-white px-6 py-3 rounded-lg font-kanit font-medium mb-6">
+                    ➕ เพิ่มผู้ใช้
+                </button>
+                
+                <!-- Users Table -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="overflow-x-auto">
+                        <table class="w-full table-hover">
+                            <thead class="bg-orange-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">ชื่อผู้ใช้</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">ระดับ</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">สถานะ</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">ดำเนินการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="userTableBody">
+                                <!-- Users will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modals -->
+    <!-- Deposit Modal -->
+    <div id="depositModal" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+            <h3 class="text-xl font-kanit font-bold mb-4">ฝากเงิน</h3>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">วันที่ฝาก</label>
+                <input type="date" id="depositDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-orange-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">ชื่อนักเรียน</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">ชั้น</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">จำนวนเงิน</th>
+                        </tr>
+                    </thead>
+                    <tbody id="depositStudentList">
+                        <!-- Students will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex justify-end space-x-4 mt-6">
+                <button onclick="closeModal('depositModal')" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                    ยกเลิก
+                </button>
+                <button onclick="saveDeposit()" class="btn-primary text-white px-6 py-2 rounded-lg">
+                    บันทึก
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Withdraw Modal -->
+    <div id="withdrawModal" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+            <h3 class="text-xl font-kanit font-bold mb-4">ถอนเงิน</h3>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">วันที่ถอน</label>
+                <input type="date" id="withdrawDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-orange-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">ชื่อนักเรียน</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">ชั้น</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">ยอดเงินคงเหลือ</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">จำนวนเงินที่ถอน</th>
+                        </tr>
+                    </thead>
+                    <tbody id="withdrawStudentList">
+                        <!-- Students will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex justify-end space-x-4 mt-6">
+                <button onclick="closeModal('withdrawModal')" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                    ยกเลิก
+                </button>
+                <button onclick="saveWithdraw()" class="btn-primary text-white px-6 py-2 rounded-lg">
+                    บันทึก
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Initial Deposit Modal -->
+    <div id="initialDepositModal" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+            <h3 class="text-xl font-kanit font-bold mb-4">ยกมา</h3>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">วันที่ยกมา</label>
+                <input type="date" id="initialDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-orange-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">ชื่อนักเรียน</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">ชั้น</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">จำนวนเงินเริ่มต้น</th>
+                        </tr>
+                    </thead>
+                    <tbody id="initialStudentList">
+                        <!-- Students will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex justify-end space-x-4 mt-6">
+                <button onclick="closeModal('initialDepositModal')" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                    ยกเลิก
+                </button>
+                <button onclick="saveInitialDeposit()" class="btn-primary text-white px-6 py-2 rounded-lg">
+                    บันทึก
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Student Modal -->
+    <div id="addStudentModal" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+            <h3 class="text-xl font-kanit font-bold mb-4">เพิ่มนักเรียน (10 คน)</h3>
+            <div id="studentFormContainer" class="space-y-4">
+                <!-- Student forms will be generated here -->
+            </div>
+            <div class="flex justify-end space-x-4 mt-6">
+                <button onclick="closeModal('addStudentModal')" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                    ยกเลิก
+                </button>
+                <button onclick="saveStudents()" class="btn-primary text-white px-6 py-2 rounded-lg">
+                    บันทึก
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Student Modal -->
+    <div id="editStudentModal" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md mx-4">
+            <h3 class="text-xl font-kanit font-bold mb-4">แก้ไขข้อมูลนักเรียน</h3>
+            <form id="editStudentForm" class="space-y-4">
+                <input type="hidden" id="editStudentId">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ชื่อ-นามสกุล</label>
+                    <input type="text" id="editStudentName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ชั้น</label>
+                    <select id="editStudentClass" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <option value="อนุบาล">อนุบาล</option>
+                        <option value="ป.1">ป.1</option>
+                        <option value="ป.2">ป.2</option>
+                        <option value="ป.3">ป.3</option>
+                        <option value="ป.4">ป.4</option>
+                        <option value="ป.5">ป.5</option>
+                        <option value="ป.6">ป.6</option>
+                    </select>
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" onclick="closeModal('editStudentModal')" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                        ยกเลิก
+                    </button>
+                    <button type="submit" class="btn-primary text-white px-6 py-2 rounded-lg">
+                        บันทึก
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div id="addUserModal" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md mx-4">
+            <h3 class="text-xl font-kanit font-bold mb-4">เพิ่มผู้ใช้</h3>
+            <form id="addUserForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ชื่อผู้ใช้</label>
+                    <input type="text" id="newUsername" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">รหัสผ่าน</label>
+                    <input type="password" id="newPassword" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ระดับ</label>
+                    <select id="newUserRole" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <option value="admin">Admin</option>
+                        <option value="teacher">ครูประจำชั้น</option>
+                    </select>
+                </div>
+                <div id="classSelection" class="hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ชั้นที่ดูแล</label>
+                    <select id="newUserClass" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <option value="อนุบาล">อนุบาล</option>
+                        <option value="ป.1">ป.1</option>
+                        <option value="ป.2">ป.2</option>
+                        <option value="ป.3">ป.3</option>
+                        <option value="ป.4">ป.4</option>
+                        <option value="ป.5">ป.5</option>
+                        <option value="ป.6">ป.6</option>
+                    </select>
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" onclick="closeModal('addUserModal')" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                        ยกเลิก
+                    </button>
+                    <button type="submit" class="btn-primary text-white px-6 py-2 rounded-lg">
+                        บันทึก
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
