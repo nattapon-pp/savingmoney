@@ -162,7 +162,18 @@ function showPage(page) {
     document.getElementById(page + 'Section').classList.add('active');
     
     // Add active class to clicked button
-    event.target.classList.add('active');
+    if (event && event.target) {
+        event.target.classList.add('active');
+    } else {
+        // Fallback: find button by text
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            if (btn.textContent.includes(page === 'dashboard' ? 'แดชบอร์ด' : 
+                                           page === 'deposit' ? 'ฝาก-ถอน' : 
+                                           page === 'students' ? 'รายชื่อนักเรียน' : 'จัดการผู้ใช้')) {
+                btn.classList.add('active');
+            }
+        });
+    }
     
     // Load data based on page
     switch(page) {
