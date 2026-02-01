@@ -119,7 +119,7 @@ function showMainInterface() {
     document.getElementById('username').textContent = currentUser.username;
     
     // Show/hide admin features
-    if (currentUser.role === 'admin') {
+    if (currentUser && currentUser.role === 'admin') {
         document.getElementById('usersNavBtn').classList.remove('hidden');
     }
     
@@ -176,7 +176,7 @@ function showPage(page) {
             loadStudents();
             break;
         case 'users':
-            if (currentUser.role === 'admin') {
+            if (currentUser && currentUser.role === 'admin') {
                 loadUsers();
             }
             break;
@@ -509,10 +509,10 @@ function displayStudents() {
     const tbody = document.getElementById('studentTableBody');
     tbody.innerHTML = '';
     
-    let studentArray = Object.values(students);
+    let studentArray = Object.values(students || {});
     
     // Filter by class if user is a teacher
-    if (currentUser.role === 'teacher' && currentUser.class) {
+    if (currentUser && currentUser.role === 'teacher' && currentUser.class) {
         studentArray = studentArray.filter(student => student.class === currentUser.class);
     }
     
@@ -725,7 +725,7 @@ function loadStudentsForDeposit() {
     let studentArray = Object.values(students);
     
     // Filter by class if user is a teacher
-    if (currentUser.role === 'teacher' && currentUser.class) {
+    if (currentUser && currentUser.role === 'teacher' && currentUser.class) {
         studentArray = studentArray.filter(student => student.class === currentUser.class);
     }
     
@@ -751,7 +751,7 @@ function loadStudentsForWithdraw() {
     let studentArray = Object.values(students);
     
     // Filter by class if user is a teacher
-    if (currentUser.role === 'teacher' && currentUser.class) {
+    if (currentUser && currentUser.role === 'teacher' && currentUser.class) {
         studentArray = studentArray.filter(student => student.class === currentUser.class);
     }
     
@@ -778,7 +778,7 @@ function loadStudentsForInitialDeposit() {
     let studentArray = Object.values(students);
     
     // Filter by class if user is a teacher
-    if (currentUser.role === 'teacher' && currentUser.class) {
+    if (currentUser && currentUser.role === 'teacher' && currentUser.class) {
         studentArray = studentArray.filter(student => student.class === currentUser.class);
     }
     
@@ -1059,7 +1059,7 @@ function saveStudents() {
         
         if (name && studentClass) {
             // Check if teacher can add to this class
-            if (currentUser.role === 'teacher' && currentUser.class !== studentClass) {
+            if (currentUser && currentUser.role === 'teacher' && currentUser.class !== studentClass) {
                 Swal.fire({
                     icon: 'error',
                     title: 'ไม่มีสิทธิ์',
@@ -1116,7 +1116,7 @@ function editStudent(studentId) {
     const student = students[studentId];
     
     // Check permissions
-    if (currentUser.role === 'teacher' && currentUser.class !== student.class) {
+    if (currentUser && currentUser.role === 'teacher' && currentUser.class !== student.class) {
         Swal.fire({
             icon: 'error',
             title: 'ไม่มีสิทธิ์',
@@ -1180,7 +1180,7 @@ function deleteStudent(studentId) {
     const student = students[studentId];
     
     // Check permissions
-    if (currentUser.role === 'teacher' && currentUser.class !== student.class) {
+    if (currentUser && currentUser.role === 'teacher' && currentUser.class !== student.class) {
         Swal.fire({
             icon: 'error',
             title: 'ไม่มีสิทธิ์',
@@ -1443,7 +1443,7 @@ function showExportPreview(startDate, endDate) {
             
             if (transactionDate >= start && transactionDate <= end) {
                 // Filter by class if user is teacher
-                if (currentUser.role === 'teacher' && currentUser.class) {
+                if (currentUser && currentUser.role === 'teacher' && currentUser.class) {
                     if (transaction.studentClass === currentUser.class) {
                         filteredTransactions[transactionId] = transaction;
                     }
@@ -1540,7 +1540,7 @@ function showExportPreview(startDate, endDate) {
         }
         
         // Add class summary rows (for admin)
-        if (currentUser.role === 'admin') {
+        if (currentUser && currentUser.role === 'admin') {
             const classes = ['อนุบาล', 'ป.1', 'ป.2', 'ป.3', 'ป.4', 'ป.5', 'ป.6'];
             classes.forEach(className => {
                 if (classTotals[className]) {
@@ -1654,7 +1654,7 @@ function generateExcelFile(data) {
     }
     
     // Add class summaries (for admin)
-    if (currentUser.role === 'admin') {
+    if (currentUser && currentUser.role === 'admin') {
         wsData.push([]); // Empty row
         wsData.push(['สรุปรายชั้น']);
         

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Firebase Setup Test</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+</head>
+<body>
+    <h1>Firebase Setup Test</h1>
+    <button onclick="testConnection()">Test Connection</button>
+    <button onclick="initializeUsers()">Initialize Users</button>
+    <div id="output"></div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyALhUUHcAKx-ImK2-YR5i5Wh9YfR27Ouf0",
+            authDomain: "savingmoney-469ba.firebaseapp.com",
+            databaseURL: "https://savingmoney-469ba-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "savingmoney-469ba",
+            storageBucket: "savingmoney-469ba.firebasestorage.app",
+            messagingSenderId: "441156301915",
+            appId: "1:441156301915:web:6fa1366e4280aff84a7b7e",
+            measurementId: "G-6Z2E0Q1B99"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        function testConnection() {
+            const output = document.getElementById('output');
+            output.innerHTML = 'Testing connection...';
+            
+            database.ref('.info/connected').once('value', (snapshot) => {
+                output.innerHTML += '<br>Connected: ' + snapshot.val();
+            });
+            
+            database.ref('users').once('value', (snapshot) => {
+                const users = snapshot.val();
+                output.innerHTML += '<br>Users found: ' + Object.keys(users || {}).length;
+                output.innerHTML += '<pre>' + JSON.stringify(users, null, 2) + '</pre>';
+            }).catch(error => {
+                output.innerHTML += '<br>Error: ' + error.message;
+            });
+        }
+
+        function initializeUsers() {
+            const output = document.getElementById('output');
+            output.innerHTML = 'Initializing users...';
+            
+            const defaultUsers = [
+                { username: 'P1', password: 'p1123456', role: 'teacher', class: 'ป.1' },
+                { username: 'P2', password: 'p2123456', role: 'teacher', class: 'ป.2' },
+                { username: 'P3', password: 'p3123456', role: 'teacher', class: 'ป.3' },
+                { username: 'P4', password: 'p4123456', role: 'teacher', class: 'ป.4' },
+                { username: 'P5', password: 'p5123456', role: 'teacher', class: 'ป.5' },
+                { username: 'P6', password: 'p6123456', role: 'teacher', class: 'ป.6' },
+                { username: 'K123', password: 'k123123456', role: 'teacher', class: 'อนุบาล' },
+                { username: 'admin', password: 'admin57030010', role: 'admin' }
+            ];
+            
+            const usersRef = database.ref('users');
+            
+            defaultUsers.forEach(user => {
+                usersRef.push(user);
+            });
+            
+            output.innerHTML += '<br>Users initialized successfully!';
+        }
+    </script>
+</body>
+</html>
