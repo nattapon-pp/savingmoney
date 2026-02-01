@@ -113,6 +113,8 @@ function logout() {
 }
 
 function showMainInterface() {
+    console.log('showMainInterface called, currentUser:', currentUser);
+    
     document.getElementById('loginSection').classList.remove('active');
     document.getElementById('dashboardSection').classList.add('active');
     document.getElementById('userInfo').classList.remove('hidden');
@@ -124,10 +126,20 @@ function showMainInterface() {
     }
     
     // Show deposit buttons for logged in users
-    document.getElementById('depositButtons').classList.remove('hidden');
-    document.getElementById('loginPrompt').classList.add('hidden');
-    document.getElementById('studentButtons').classList.remove('hidden');
-    document.getElementById('studentLoginPrompt').classList.add('hidden');
+    if (document.getElementById('depositButtons')) {
+        document.getElementById('depositButtons').classList.remove('hidden');
+    }
+    if (document.getElementById('loginPrompt')) {
+        document.getElementById('loginPrompt').classList.add('hidden');
+    }
+    if (document.getElementById('studentButtons')) {
+        document.getElementById('studentButtons').classList.remove('hidden');
+    }
+    if (document.getElementById('studentLoginPrompt')) {
+        document.getElementById('studentLoginPrompt').classList.add('hidden');
+    }
+    
+    console.log('Buttons should be visible now');
     
     // Load dashboard data
     loadDashboardData();
